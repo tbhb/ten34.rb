@@ -25,6 +25,10 @@ module Ten34
       provider.delete_db(opts)
     end
 
+    def del(key, opts = {})
+      provider.del(key, opts)
+    end
+
     def get(key, opts = {})
       provider.get(key, opts)
     end

@@ -16,6 +16,9 @@ module Ten34
       def delete_db(opts = {})
       end
 
+      def del(key, opts = {})
+      end
+
       def get(key, opts = {})
       end
 
