@@ -59,5 +59,16 @@ module Ten34
       end
       Ten34::Client.new(db).set(key, value)
     end
+
+    desc 'keys', 'Gets keys matching the specified pattern'
+    method_option :db, type: :string, aliases: '-d'
+    def keys(pattern)
+      db = ENV.fetch('TEN34_DB', options[:db])
+      unless db
+        puts 'Database must be specified with --db or ten34_DB in environment'
+        exit(1)
+      end
+      Ten34::Client.new(db).keys(pattern)
+    end
   end
 end

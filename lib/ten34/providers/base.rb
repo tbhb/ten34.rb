@@ -25,6 +25,9 @@ module Ten34
       def set(key, value, opts = {})
       end
 
+      def keys(pattern, opts = {})
+      end
+
       protected
 
       attr_reader :name, :opts

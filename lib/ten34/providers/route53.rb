@@ -153,6 +153,27 @@ module Ten34
         # TODO: Poll route53.get_change for change status
       end
 
+      def keys(pattern, opts = {})
+        logger.debug("Getting keys matching pattern: #{pattern}")
+
+        resp = route53.list_hosted_zones_by_name
+        hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
+        hosted_zone_id = hosted_zone.id if hosted_zone
+        if hosted_zone_id
+          logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
+        else
+          logger.fatal "Database not found: #{name}"
+          raise Ten34::Errors::DatabaseNotFound, name
+        end
+
+        resp = route53.list_resource_record_sets(hosted_zone_id: hosted_zone_id)
+        all_keys = resp.each_with_object([]) do |p, a|
+          a.concat(p.resource_record_sets.select { |r| r.type == 'TXT' }.map { |r| r.name.delete_suffix(".#{name}.") })
+        end
+
+        all_keys.grep(Regexp.new(pattern)).each { |k| puts k }
+      end
+
       private
 
       def route53

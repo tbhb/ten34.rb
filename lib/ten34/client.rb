@@ -37,6 +37,10 @@ module Ten34
       provider.set(key, value, opts)
     end
 
+    def keys(pattern, opts = {})
+      provider.keys(pattern, opts)
+    end
+
     private
 
     attr_reader :opts, :parsed_uri, :name, :provider
