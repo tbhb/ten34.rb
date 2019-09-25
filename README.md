@@ -4,7 +4,7 @@ A globally-distributed, eventually-consistent, 100% available key-value store.
 
 > Route 53 isn't really a database, but then again, neither is Redis.
 
-_(Corey Quinn)[https://twitter.com/QuinnyPig/status/1173371936342044672])_
+_[Corey Quinn](https://twitter.com/QuinnyPig/status/1173371936342044672)_
 
 ## Installation
 
