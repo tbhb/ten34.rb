@@ -4,6 +4,7 @@ PATH
     ten34 (0.1.0)
       activesupport
       aws-sdk (~> 3.0)
+      retriable
       thor
       tty-logger
 
@@ -820,6 +821,7 @@ GEM
       method_source (~> 0.9.0)
     rainbow (3.0.0)
     rake (10.5.0)
+    retriable (3.1.2)
     rspec (3.8.0)
       rspec-core (~> 3.8.0)
       rspec-expectations (~> 3.8.0)

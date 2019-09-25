@@ -1,4 +1,5 @@
 require 'aws-sdk'
+require 'retriable'
 
 require 'ten34/providers/base'
 
@@ -33,13 +34,6 @@ module Ten34
       def delete_db(opts = {})
         logger.debug("Deleting database: #{name}")
 
-        resp = route53.list_hosted_zones_by_name
-        hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
-        hosted_zone_id = hosted_zone.id if hosted_zone
-        if hosted_zone_id
-          logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
-        end
-
         # TODO: Delete all resource record sets except for default SOA and NS
 
         resp = route53.delete_hosted_zone(id: hosted_zone_id)
@@ -49,16 +43,6 @@ module Ten34
 
       def del(key, opts = {})
         logger.debug("Deleting key: #{key}")
-
-        resp = route53.list_hosted_zones_by_name
-        hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
-        hosted_zone_id = hosted_zone.id if hosted_zone
-        if hosted_zone_id
-          logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
-        else
-          logger.fatal "Database not found: #{name}"
-          raise Ten34::Errors::DatabaseNotFound, name
-        end
 
         resp = route53.list_resource_record_sets(
           hosted_zone_id: hosted_zone_id,
@@ -93,40 +77,22 @@ module Ten34
       def get(key, opts = {})
         logger.debug("Getting value for key: #{key}")
 
-        resp = route53.list_hosted_zones_by_name
-        hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
-        hosted_zone_id = hosted_zone.id if hosted_zone
-        if hosted_zone_id
-          logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
-        else
-          logger.fatal "Database not found: #{name}"
-          raise Ten34::Errors::DatabaseNotFound, name
+        Retriable.retriable(on: Aws::Route53::Errors::Throttling) do
+          resp = route53.list_resource_record_sets(
+            hosted_zone_id: hosted_zone_id,
+            start_record_name: "#{key}.#{name}.",
+            start_record_type: 'TXT',
+            max_items: 1
+          )
+
+          raise(Ten34::Errors::KeyNotFound, key) if resp.resource_record_sets.empty?
+
+          puts resp.resource_record_sets.first.resource_records.first.value.delete_prefix('"').delete_suffix('"')
         end
-
-        resp = route53.list_resource_record_sets(
-          hosted_zone_id: hosted_zone_id,
-          start_record_name: "#{key}.#{name}.",
-          start_record_type: 'TXT',
-          max_items: 1
-        )
-
-        raise(Ten34::Errors::KeyNotFound, key) if resp.resource_record_sets.empty?
-
-        puts resp.resource_record_sets.first.resource_records.first.value.delete_prefix('"').delete_suffix('"')
       end
 
       def set(key, value, opts = {})
         logger.debug("Setting value for key: #{key}")
-
-        resp = route53.list_hosted_zones_by_name
-        hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
-        hosted_zone_id = hosted_zone.id if hosted_zone
-        if hosted_zone_id
-          logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
-        else
-          logger.fatal "Database not found: #{name}"
-          raise Ten34::Errors::DatabaseNotFound, name
-        end
 
         resp = route53.change_resource_record_sets(
           change_batch: {
@@ -156,16 +122,6 @@ module Ten34
       def keys(pattern, opts = {})
         logger.debug("Getting keys matching pattern: #{pattern}")
 
-        resp = route53.list_hosted_zones_by_name
-        hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
-        hosted_zone_id = hosted_zone.id if hosted_zone
-        if hosted_zone_id
-          logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
-        else
-          logger.fatal "Database not found: #{name}"
-          raise Ten34::Errors::DatabaseNotFound, name
-        end
-
         resp = route53.list_resource_record_sets(hosted_zone_id: hosted_zone_id)
         all_keys = resp.each_with_object([]) do |p, a|
           a.concat(p.resource_record_sets.select { |r| r.type == 'TXT' }.map { |r| r.name.delete_suffix(".#{name}.") })
@@ -178,6 +134,22 @@ module Ten34
 
       def route53
         @route53 ||= Aws::Route53::Client.new
+      end
+
+      def hosted_zone_id
+        @hosted_zone_id ||=
+          begin
+            resp = route53.list_hosted_zones_by_name
+            hosted_zone = resp.hosted_zones.find { |h| h.name == "#{name}." }
+            hosted_zone_id = hosted_zone.id if hosted_zone
+            if hosted_zone_id
+              logger.debug "Found hosted zone with ID #{hosted_zone_id} for database #{name}"
+            else
+              logger.fatal "Database not found: #{name}"
+              raise Ten34::Errors::DatabaseNotFound, name
+            end
+            hosted_zone_id
+          end
       end
     end
   end
