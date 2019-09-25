@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ten34'
 
 module Ten34

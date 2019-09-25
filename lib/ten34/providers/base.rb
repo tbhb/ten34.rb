@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ten34/logging'
 
 module Ten34
@@ -10,23 +12,17 @@ module Ten34
         @opts = opts
       end
 
-      def create_db(opts = {})
-      end
+      def create_db(opts = {}); end
 
-      def delete_db(opts = {})
-      end
+      def delete_db(opts = {}); end
 
-      def del(key, opts = {})
-      end
+      def del(key, opts = {}); end
 
-      def get(key, opts = {})
-      end
+      def get(key, opts = {}); end
 
-      def set(key, value, opts = {})
-      end
+      def set(key, value, opts = {}); end
 
-      def keys(pattern, opts = {})
-      end
+      def keys(pattern, opts = {}); end
 
       protected
 

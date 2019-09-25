@@ -1,0 +1,18 @@
+Lint/AmbiguousBlockAssociation:
+  Exclude:
+    - 'benchmark.rb'
+
+Metrics/AbcSize:
+  Max: 20
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/MethodLength:
+  Max: 30
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/LineLength:
+  Max: 140

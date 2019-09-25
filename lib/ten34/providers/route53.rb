@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk'
 require 'retriable'
 
@@ -12,7 +14,7 @@ module Ten34
         logger.debug("Using Route53 provider for database #{name}")
       end
 
-      def create_db(opts = {})
+      def create_db(_opts = {})
         logger.debug("Creating database: #{name}")
 
         resp = route53.list_hosted_zones_by_name
@@ -23,7 +25,7 @@ module Ten34
         end
 
         ref = Time.now.to_i.to_s
-        resp = route53.create_hosted_zone(
+        route53.create_hosted_zone(
           name: name,
           caller_reference: ref
         )
@@ -31,17 +33,17 @@ module Ten34
         # TODO: Poll route53.get_change for creation status
       end
 
-      def delete_db(opts = {})
+      def delete_db(_opts = {})
         logger.debug("Deleting database: #{name}")
 
         # TODO: Delete all resource record sets except for default SOA and NS
 
-        resp = route53.delete_hosted_zone(id: hosted_zone_id)
+        route53.delete_hosted_zone(id: hosted_zone_id)
 
         # TODO: Poll route53.get_change for deletion status
       end
 
-      def del(key, opts = {})
+      def del(key, _opts = {})
         logger.debug("Deleting key: #{key}")
 
         resp = route53.list_resource_record_sets(
@@ -55,7 +57,7 @@ module Ten34
 
         resource_record_set = resp.resource_record_sets.first
 
-        resp = route53.change_resource_record_sets(
+        route53.change_resource_record_sets(
           change_batch: {
             changes: [
               action: 'DELETE',
@@ -74,7 +76,7 @@ module Ten34
         # TODO: Poll route53.get_change for change status
       end
 
-      def get(key, opts = {})
+      def get(key, _opts = {})
         logger.debug("Getting value for key: #{key}")
 
         Retriable.retriable(on: Aws::Route53::Errors::Throttling) do
@@ -91,10 +93,10 @@ module Ten34
         end
       end
 
-      def set(key, value, opts = {})
+      def set(key, value, _opts = {})
         logger.debug("Setting value for key: #{key}")
 
-        resp = route53.change_resource_record_sets(
+        route53.change_resource_record_sets(
           change_batch: {
             changes: [
               {
@@ -119,7 +121,7 @@ module Ten34
         # TODO: Poll route53.get_change for change status
       end
 
-      def keys(pattern, opts = {})
+      def keys(pattern, _opts = {})
         logger.debug("Getting keys matching pattern: #{pattern}")
 
         resp = route53.list_resource_record_sets(hosted_zone_id: hosted_zone_id)
