@@ -24,7 +24,47 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Creating a database
+
+```shell
+ten34 create-db route53://my.db
+```
+
+### Deleting a database
+
+```shell
+ten34 delete-db route53://my.db
+```
+
+### Setting a key
+
+```shell
+ten34 set foo bar -d route53://my.db
+```
+
+### Getting a key
+
+```shell
+ten34 get foo -d route53://my.db
+```
+
+### Deleting a key
+
+```shell
+ten34 del foo -d route53://my.db
+```
+
+### Listing all keys
+
+```shell
+ten34 keys .+ -d route53://my.db
+```
+
+### Listing keys matching a pattern
+
+```shell
+ten34 keys 'foo*' -d route53://my.db
+```
 
 ## Development
 
@@ -44,6 +84,6 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 Everyone interacting in the ten34 project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/craftyphotons/ten34/blob/master/CODE_OF_CONDUCT.md).
 
-## Disclaimer
+## Additional Disclaimer
 
-This project and its maintainers shall not be held responsible for costs and repercussions resulting from its use, including but not limited to account closure by your cloud service provider for violating their terms of service.
+In addition to the terms of the MIT license, this project and its maintainers shall not be held responsible for costs and repercussions resulting from its use. This includes but is not limited to account closure by your cloud service provider for violating their terms of service and the disappointment of your peers for usage of this project for your actual database.
