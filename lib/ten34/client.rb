@@ -6,6 +6,10 @@ require 'active_support/core_ext/string/inflections'
 
 require 'ten34/logging'
 
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym 'DNS'
+end
+
 module Ten34
   class Client
     include Ten34::Logging
@@ -46,7 +50,7 @@ module Ten34
     attr_reader :opts, :parsed_uri, :name, :provider
 
     def build_provider
-      provider_name = parsed_uri.scheme.camelize
+      provider_name = parsed_uri.scheme.underscore.camelize
       logger.debug "Building provider for #{provider_name} and database #{name}"
       require "ten34/providers/#{parsed_uri.scheme.underscore}"
       Ten34::Providers.const_get(provider_name).new(name, opts)

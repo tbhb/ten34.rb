@@ -30,6 +30,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport'
   spec.add_dependency 'aws-sdk', '~> 3.0'
+  spec.add_dependency 'google-cloud-dns'
+  spec.add_dependency 'google-cloud-kms'
   spec.add_dependency 'retriable'
   spec.add_dependency 'thor'
   spec.add_dependency 'tty-logger'
