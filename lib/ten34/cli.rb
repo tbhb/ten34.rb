@@ -30,45 +30,39 @@ module Ten34
     desc 'del', 'Deletes the specified key'
     method_option :db, type: :string, aliases: '-d'
     def del(key)
-      db = ENV.fetch('TEN34_DB', options[:db])
-      unless db
-        puts 'Database must be specified with --db or ten34_DB in environment'
-        exit(1)
-      end
       Ten34::Client.new(db).del(key)
     end
 
     desc 'get', 'Gets the value of the specified key'
     method_option :db, type: :string, aliases: '-d'
     def get(key)
-      db = ENV.fetch('TEN34_DB', options[:db])
-      unless db
-        puts 'Database must be specified with --db or ten34_DB in environment'
-        exit(1)
-      end
       Ten34::Client.new(db).get(key)
     end
 
     desc 'set', 'Sets the value of the specified key'
     method_option :db, type: :string, aliases: '-d'
     def set(key, value)
-      db = ENV.fetch('TEN34_DB', options[:db])
-      unless db
-        puts 'Database must be specified with --db or ten34_DB in environment'
-        exit(1)
-      end
       Ten34::Client.new(db).set(key, value)
     end
 
     desc 'keys', 'Gets keys matching the specified pattern'
     method_option :db, type: :string, aliases: '-d'
     def keys(pattern)
-      db = ENV.fetch('TEN34_DB', options[:db])
-      unless db
-        puts 'Database must be specified with --db or ten34_DB in environment'
-        exit(1)
-      end
       Ten34::Client.new(db).keys(pattern)
+    end
+
+    private
+
+    def db
+      @db ||=
+        begin
+          db = ENV.fetch('TEN34_DB', options[:db])
+          unless db
+            puts 'Database must be specified with --db or TEN34_DB in environment'
+            exit(1)
+          end
+          db
+        end
     end
   end
 end
