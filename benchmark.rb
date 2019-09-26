@@ -10,7 +10,7 @@ db_name = "test-#{Time.now.to_i}.db"
 client = Ten34::Client.new("route53://#{db_name}")
 client.create_db
 
-client.set('foo', 'bar')
+client.put('foo', 'bar')
 
 puts Benchmark.measure { 1000.times { client.get('foo') } }
 

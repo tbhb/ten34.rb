@@ -20,7 +20,7 @@ module Ten34
 
       def get(key, opts = {}); end
 
-      def set(key, value, opts = {}); end
+      def put(key, value, opts = {}); end
 
       def keys(pattern, opts = {}); end
 

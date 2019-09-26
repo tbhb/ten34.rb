@@ -33,8 +33,8 @@ module Ten34
       provider.get(key, opts)
     end
 
-    def set(key, value, opts = {})
-      provider.set(key, value, opts)
+    def put(key, value, opts = {})
+      provider.put(key, value, opts)
     end
 
     def keys(pattern, opts = {})

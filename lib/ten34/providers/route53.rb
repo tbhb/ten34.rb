@@ -102,7 +102,7 @@ module Ten34
         end
       end
 
-      def set(key, value, opts = {})
+      def put(key, value, opts = {})
         logger.debug("Setting value for key: #{key}")
 
         if opts[:encrypt]
