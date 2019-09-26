@@ -39,7 +39,13 @@ ten34 delete-db route53://my.db
 ### Setting a key
 
 ```shell
-ten34 set foo bar -d route53://my.db
+ten34 put foo bar -d route53://my.db
+```
+
+### Setting a key with encryption
+
+```shell
+ten34 put foo bar -d route53://my.db -e --kms-key-id <AWS_KMS_KEY_ID>
 ```
 
 ### Getting a key
