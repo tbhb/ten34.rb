@@ -41,8 +41,14 @@ module Ten34
 
     desc 'set', 'Sets the value of the specified key'
     method_option :db, type: :string, aliases: '-d'
+    method_option :encrypt, type: :boolean, default: false, aliases: '-e'
+    method_option :kms_key_id, type: :string
     def set(key, value)
-      Ten34::Client.new(db).set(key, value)
+      if options[:encrypt] && kms_key_id.nil?
+        logger.fatal 'KMS key ID must be specified with --kms-key-id or TEN34_KMS_KEY_ID when encrypting'
+        exit(1)
+      end
+      Ten34::Client.new(db).set(key, value, options.merge(kms_key_id: kms_key_id))
     end
 
     desc 'keys', 'Gets keys matching the specified pattern'
@@ -53,16 +59,22 @@ module Ten34
 
     private
 
+    include Logging
+
     def db
       @db ||=
         begin
           db = ENV.fetch('TEN34_DB', options[:db])
           unless db
-            puts 'Database must be specified with --db or TEN34_DB in environment'
+            logger.fatal 'Database must be specified with --db or TEN34_DB in environment'
             exit(1)
           end
           db
         end
+    end
+
+    def kms_key_id
+      @kms_key_id ||= ENV['TEN34_KMS_KEY_ID'] || options[:kms_key_id]
     end
   end
 end

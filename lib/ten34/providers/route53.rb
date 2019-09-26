@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'base64'
+
 require 'aws-sdk'
 require 'retriable'
 
@@ -89,12 +91,24 @@ module Ten34
 
           raise(Ten34::Errors::KeyNotFound, key) if resp.resource_record_sets.empty?
 
-          puts resp.resource_record_sets.first.resource_records.first.value.delete_prefix('"').delete_suffix('"')
+          value = resp.resource_record_sets.first.resource_records.first.value.delete_prefix('"').delete_suffix('"')
+
+          if value.start_with?('kms:')
+            ciphertext = value.delete_prefix('kms:')
+            value = kms.decrypt(ciphertext_blob: Base64.decode64(ciphertext)).plaintext
+          end
+
+          puts value
         end
       end
 
-      def set(key, value, _opts = {})
+      def set(key, value, opts = {})
         logger.debug("Setting value for key: #{key}")
+
+        if opts[:encrypt]
+          ciphertext = Base64.encode64(kms.encrypt(key_id: opts[:kms_key_id], plaintext: value).ciphertext_blob).gsub(/\s+/, '')
+          value = "kms:#{ciphertext}"
+        end
 
         route53.change_resource_record_sets(
           change_batch: {
@@ -133,6 +147,10 @@ module Ten34
       end
 
       private
+
+      def kms
+        @kms ||= Aws::KMS::Client.new
+      end
 
       def route53
         @route53 ||= Aws::Route53::Client.new
