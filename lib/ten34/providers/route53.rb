@@ -4,6 +4,7 @@ require 'base64'
 
 require 'aws-sdk'
 require 'retriable'
+require 'resolv-idn'
 
 require 'ten34/providers/base'
 
@@ -82,12 +83,8 @@ module Ten34
         logger.debug("Getting value for key: #{key}")
 
         Retriable.retriable(on: Aws::Route53::Errors::Throttling) do
-          resp = route53.list_resource_record_sets(
-            hosted_zone_id: hosted_zone_id,
-            start_record_name: "#{key}.#{name}.",
-            start_record_type: 'TXT',
-            max_items: 1
-          )
+          dns_obj = Resolv::DNS.new
+          resp = dns_obj.getresources "#{key}.#{name}.", Resolv::DNS::Resource::IN::TXT
 
           raise(Ten34::Errors::KeyNotFound, key) if resp.resource_record_sets.empty?
 
