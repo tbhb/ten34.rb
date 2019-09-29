@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'base64'
+require 'resolv'
 
 require 'aws-sdk'
 require 'retriable'
@@ -81,21 +82,19 @@ module Ten34
       def get(key, _opts = {})
         logger.debug("Getting value for key: #{key}")
 
-        Retriable.retriable(on: Aws::Route53::Errors::Throttling) do
-          dns_obj = Resolv::DNS.new
-          resp = dns_obj.getresources "#{key}.#{name}.", Resolv::DNS::Resource::IN::TXT
+        dns_obj = Resolv::DNS.new
+        resp = dns_obj.getresources "#{key}.#{name}.", Resolv::DNS::Resource::IN::TXT
+        
+        raise(Ten34::Errors::KeyNotFound, key) if resp.empty?
 
-          raise(Ten34::Errors::KeyNotFound, key) if resp.resource_record_sets.empty?
+        value = resp.first.strings.first
 
-          value = resp.resource_record_sets.first.resource_records.first.value.delete_prefix('"').delete_suffix('"')
-
-          if value.start_with?('kms:')
-            ciphertext = value.delete_prefix('kms:')
-            value = kms.decrypt(ciphertext_blob: Base64.decode64(ciphertext)).plaintext
-          end
-
-          puts value
+        if value.start_with?('kms:')
+          ciphertext = value.delete_prefix('kms:')
+          value = kms.decrypt(ciphertext_blob: Base64.decode64(ciphertext)).plaintext
         end
+
+        puts value
       end
 
       def put(key, value, opts = {})
