@@ -82,12 +82,30 @@ module Ten34
       def get(key, _opts = {})
         logger.debug("Getting value for key: #{key}")
 
+        logger.debug("Querying DNS for key: #{key}")
         dns_obj = Resolv::DNS.new
         resp = dns_obj.getresources "#{key}.#{name}.", Resolv::DNS::Resource::IN::TXT
-        
-        raise(Ten34::Errors::KeyNotFound, key) if resp.empty?
 
-        value = resp.first.strings.first
+        if resp.empty?
+          logger.debug("Key not available in DNS, querying in Route53: #{key}")
+          resp = route53.list_resource_record_sets(
+            hosted_zone_id: hosted_zone_id,
+            start_record_name: "#{key}.#{name}.",
+            start_record_type: 'TXT',
+            max_items: 1
+          )
+
+          if resp.resource_record_sets.empty?
+            logger.fatal("Key not available in DNS or Route53: #{key}")
+            raise(Ten34::Errors::KeyNotFound, key)
+          end
+        end
+        
+        if resp.is_a?(Array) && resp.first.is_a?(Resolv::DNS::Resource::IN::TXT)
+          value = resp.first.strings.first
+        else
+          value = resp.resource_record_sets.first.resource_records.first.value.delete_prefix('"').delete_suffix('"')
+        end
 
         if value.start_with?('kms:')
           ciphertext = value.delete_prefix('kms:')
