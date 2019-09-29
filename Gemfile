@@ -6,4 +6,3 @@ gemspec
 
 gem 'pry'
 gem 'rubocop'
-gem 'resolv-idn`

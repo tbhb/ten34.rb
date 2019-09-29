@@ -4,7 +4,6 @@ require 'base64'
 
 require 'aws-sdk'
 require 'retriable'
-require 'resolv-idn'
 
 require 'ten34/providers/base'
 
